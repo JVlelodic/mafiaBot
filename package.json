@@ -1,0 +1,22 @@
+{
+  "name": "leetbot",
+  "version": "1.0.0",
+  "description": "Discord bot that tracks leetcode progress and statistics",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JVlelodic/leetBot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JVlelodic/leetBot/issues"
+  },
+  "homepage": "https://github.com/JVlelodic/leetBot#readme",
+  "dependencies": {
+    "discord.js": "^12.2.0"
+  }
+}
