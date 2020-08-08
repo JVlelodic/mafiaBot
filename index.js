@@ -5,8 +5,9 @@ const { default: axios } = require("axios");
 
 const TOKEN = config.token;
 const URL = config.url;
+const MAFIA_ROLE = "Mafia Players";
 
-let gChannels = [];
+let addChannels = [];
 
 client.login(TOKEN);
 
@@ -19,29 +20,62 @@ client.on("message", async (msg) => {
         case "MAFIA":
             try {
                 const server = msg.guild.channels;
+                //Create the channels
                 const townhall = await server.create("Townhall", {
                     type: "voice",
                 });
-                const mafia = await server.create("Mafia", { type: "voice" });
-                gChannels.push(townhall);
-                gChannels.push(mafia);
+
+                const mafia = await server.create("Mafia", {
+                    type: "text",
+                });
+
+                addChannels.push(townhall);
+                addChannels.push(mafia);
+
+                const everyRole = msg.guild.roles.everyone;
+
+                const playerRole = await msg.guild.roles.create({
+                    data: {
+                        name: MAFIA_ROLE,
+                        color: "RED",
+                    },
+                });
+
+                townhall.overwritePermissions([
+                    {
+                        id: everyRole,
+                        deny: ["VIEW_CHANNEL", "SPEAK", "CONNECT"],
+                    },
+                    {
+                        id: playerRole,
+                        allow: ["VIEW_CHANNEL", "SPEAK", "CONNECT"],
+                    },
+                ]);
+
+                msg.member.roles.add(playerRole);
             } catch (err) {
                 console.error(err);
             }
             break;
         case "/delete":
-            Promise.all(
-                gChannels.map(async (channel) => {
-                    await channel.delete();
-                })
-            ).catch((err) => {
+            try {
+                Promise.all(
+                    addChannels.map(async (channel) => {
+                        await channel.delete();
+                    })
+                );
+
+                const allRoles = msg.guild.roles.cache;
+                allRoles.each(async (role) => {
+                    if (role.name === MAFIA_ROLE) {
+                        await role.delete();
+                    }
+                });
+            } catch (err) {
                 console.error(err);
-            });
+            }
             break;
-        case "/createGuild":
-			
-        case "/guild":
-            console.log(`The guild name is ${msg.guild.name}`);
+
         default:
     }
 });
