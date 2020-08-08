@@ -52,7 +52,19 @@ client.on("message", async (msg) => {
                     },
                 ]);
 
-                msg.member.roles.add(playerRole);
+                const currPlayer = msg.member;
+                await currPlayer.roles.add(playerRole);
+
+                //If in voice channel in this guild, move him into mafia server
+                if (currPlayer.voice.channel) {
+                    await currPlayer.edit({
+                        channel: townhall,
+                    });
+                } else {
+                    await msg.channel.send(
+                        `${msg.author.toString()} Please enter a voice channel and msg /join to participate in the Mafia Game`
+                    );
+                }
             } catch (err) {
                 console.error(err);
             }
