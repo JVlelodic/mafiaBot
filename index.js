@@ -6,7 +6,9 @@ const { default: axios } = require("axios");
 const TOKEN = config.token;
 const MAFIA_ROLE = "Mafia Players";
 
-let addChannels = [];
+let talkChan = null;
+let msgChan = null;
+let roleId = null;
 
 client.login(TOKEN);
 
@@ -21,17 +23,24 @@ client.on("message", async (msg) => {
                 const server = msg.guild.channels;
 
                 //Create the channels
-                const townhall = await server.create("Townhall", {
-                    type: "voice",
-                });
+                if (!talkChan) {
+                    const townhall = await server.create("Townhall", {
+                        type: "voice",
+                    });
 
-                const mafia = await server.create("Mafia", {
-                    type: "text",
-                });
+                    talkChan = townhall;
+                }
 
-                addChannels.push(townhall);
-                addChannels.push(mafia);
-                console.log(addChannels);
+                if (!msgChan) {
+                    const mafia = await server.create("Mafia", {
+                        type: "text",
+                    });
+
+                    msgChan = mafia;
+                }
+
+                console.log("Voice channel is " + talkChan);
+                console.log("Text channel is " + msgChan);
 
                 const everyRole = msg.guild.roles.everyone;
 
@@ -42,41 +51,58 @@ client.on("message", async (msg) => {
                     },
                 });
 
+                roleId = playerRole.id;
+
                 const perms = ["VIEW_CHANNEL", "SPEAK", "CONNECT"];
 
                 //Change the permissions
-                townhall.overwritePermissions([
+                talkChan.overwritePermissions([
                     { id: everyRole, deny: perms },
                     { id: playerRole, allow: perms },
                 ]);
 
-                mafia.overwritePermissions([
+                msgChan.overwritePermissions([
                     { id: everyRole, deny: perms },
                     { id: playerRole, allow: perms },
                 ]);
-
-                const currPlayer = msg.member;
 
                 //If in voice channel in this guild, move him into mafia server
-                await moveChannel(
-                    currPlayer,
-                    townhall,
-                    msg.channel,
-                    playerRole
-                );
+                await moveChannel(msg.member, msg.channel, playerRole);
             } catch (err) {
                 console.error(err);
             }
             break;
         case "!join":
+            try {
+                if (roleId) {
+                    const playerRole = await msg.guild.roles.fetch(roleId);
+                    await moveChannel(msg.member, msg.channel, playerRole);
+                } else {
+                    await msg.channel.send(
+                        "Please start mafia game first by msging !mafia in a text channel"
+                    );
+                }
+            } catch (err) {
+                console.error(err);
+            }
+
             break;
         case "!delete":
             try {
-                Promise.all(
-                    addChannels.map(async (channel) => {
-                        await channel.delete();
-                    })
-                );
+                // Promise.all(
+                //     addChannels.map(async (channel) => {
+                //         await channel.delete();
+                //     })
+                // );
+                if (talkChan) {
+                    await talkChan.delete();
+                    talkChan = null;
+                }
+
+                if (msgChan) {
+                    await msgChan.delete();
+                    msgChan = null;
+                }
 
                 const allRoles = msg.guild.roles.cache;
                 allRoles.each(async (role) => {
@@ -94,13 +120,19 @@ client.on("message", async (msg) => {
 });
 
 //Moves player to Mafia channel and adds mafia role to player
-const moveChannel = async (member, channel, broadcast, role) => {
+const moveChannel = async (member, broadcast, role) => {
     try {
-        if (member.voice.channel) {
+        //Check if a mafia game has been started
+        if (!talkChan) {
+            await broadcast.send(
+                "Please start mafia game first by msging !mafia in a text channel"
+            );
+            //Make sure that the player is in a voice channel
+        } else if (member.voice.channel) {
             await member.roles.add(role);
 
             await member.edit({
-                channel: channel,
+                channel: talkChan,
             });
         } else {
             await broadcast.send(
