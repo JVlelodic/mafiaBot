@@ -4,7 +4,6 @@ const config = require("./config.json");
 const { default: axios } = require("axios");
 
 const TOKEN = config.token;
-const URL = config.url;
 const MAFIA_ROLE = "Mafia Players";
 
 let addChannels = [];
@@ -17,9 +16,10 @@ client.on("ready", () => {
 
 client.on("message", async (msg) => {
     switch (msg.content) {
-        case "MAFIA":
+        case "!mafia":
             try {
                 const server = msg.guild.channels;
+
                 //Create the channels
                 const townhall = await server.create("Townhall", {
                     type: "voice",
@@ -31,6 +31,7 @@ client.on("message", async (msg) => {
 
                 addChannels.push(townhall);
                 addChannels.push(mafia);
+                console.log(addChannels);
 
                 const everyRole = msg.guild.roles.everyone;
 
@@ -41,35 +42,35 @@ client.on("message", async (msg) => {
                     },
                 });
 
+                const perms = ["VIEW_CHANNEL", "SPEAK", "CONNECT"];
+
+                //Change the permissions
                 townhall.overwritePermissions([
-                    {
-                        id: everyRole,
-                        deny: ["VIEW_CHANNEL", "SPEAK", "CONNECT"],
-                    },
-                    {
-                        id: playerRole,
-                        allow: ["VIEW_CHANNEL", "SPEAK", "CONNECT"],
-                    },
+                    { id: everyRole, deny: perms },
+                    { id: playerRole, allow: perms },
+                ]);
+
+                mafia.overwritePermissions([
+                    { id: everyRole, deny: perms },
+                    { id: playerRole, allow: perms },
                 ]);
 
                 const currPlayer = msg.member;
-                await currPlayer.roles.add(playerRole);
 
                 //If in voice channel in this guild, move him into mafia server
-                if (currPlayer.voice.channel) {
-                    await currPlayer.edit({
-                        channel: townhall,
-                    });
-                } else {
-                    await msg.channel.send(
-                        `${msg.author.toString()} Please enter a voice channel and msg /join to participate in the Mafia Game`
-                    );
-                }
+                await moveChannel(
+                    currPlayer,
+                    townhall,
+                    msg.channel,
+                    playerRole
+                );
             } catch (err) {
                 console.error(err);
             }
             break;
-        case "/delete":
+        case "!join":
+            break;
+        case "!delete":
             try {
                 Promise.all(
                     addChannels.map(async (channel) => {
@@ -91,3 +92,22 @@ client.on("message", async (msg) => {
         default:
     }
 });
+
+//Moves player to Mafia channel and adds mafia role to player
+const moveChannel = async (member, channel, broadcast, role) => {
+    try {
+        if (member.voice.channel) {
+            await member.roles.add(role);
+
+            await member.edit({
+                channel: channel,
+            });
+        } else {
+            await broadcast.send(
+                `${member.toString()} Please enter a voice channel and msg !join to participate in the Mafia Game`
+            );
+        }
+    } catch (err) {
+        console.error(err);
+    }
+};
