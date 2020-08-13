@@ -6,6 +6,7 @@ const { default: axios } = require("axios");
 const TOKEN = config.token;
 const MAFIA_ROLE = "Mafia Players";
 
+//Globals
 let talkChan = null;
 let msgChan = null;
 let roleId = null;
@@ -17,9 +18,9 @@ client.on("ready", () => {
 });
 
 client.on("message", async (msg) => {
-    switch (msg.content) {
-        case "!mafia":
-            try {
+    try {
+        switch (msg.content) {
+            case "!mafia":
                 const server = msg.guild.channels;
 
                 //Create the channels
@@ -68,12 +69,8 @@ client.on("message", async (msg) => {
 
                 //If in voice channel in this guild, move him into mafia server
                 await moveChannel(msg.member, msg.channel, playerRole);
-            } catch (err) {
-                console.error(err);
-            }
-            break;
-        case "!join":
-            try {
+                break;
+            case "!join":
                 if (roleId) {
                     const playerRole = await msg.guild.roles.fetch(roleId);
                     await moveChannel(msg.member, msg.channel, playerRole);
@@ -82,18 +79,10 @@ client.on("message", async (msg) => {
                         "Please start mafia game first by msging !mafia in a text channel"
                     );
                 }
-            } catch (err) {
-                console.error(err);
-            }
-
-            break;
-        case "!delete":
-            try {
-                // Promise.all(
-                //     addChannels.map(async (channel) => {
-                //         await channel.delete();
-                //     })
-                // );
+                break;
+            case "!start":
+                break;
+            case "!delete":
                 if (talkChan) {
                     await talkChan.delete();
                     talkChan = null;
@@ -110,12 +99,12 @@ client.on("message", async (msg) => {
                         await role.delete();
                     }
                 });
-            } catch (err) {
-                console.error(err);
-            }
-            break;
-
-        default:
+                break;
+            default:
+                break;
+        }
+    } catch (err) {
+        console.error(err);
     }
 });
 
