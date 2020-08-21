@@ -12,9 +12,7 @@ class Game {
         this.talkChan = talkChan;
         this.msgChan = msgChan;
         this.roleId = roleId;
-        this.embed = {
-            
-        }
+
         // this.moveChannel = this.moveChannel.bind(this);
     }
 
@@ -33,8 +31,8 @@ class Game {
                     channel: this.talkChan,
                 });
             } else {
-                await this.mainChan.send(
-                    `${member.toString()} Please enter a voice channel and msg !join to participate in the Mafia Game`
+                await this.sendMsg(
+                    `${member.toString()} Enter a voice channel and msg **!join** to play Mafia Game`
                 );
             }
         } catch (err) {
@@ -56,10 +54,22 @@ class Game {
 
     sendMsg = async (msg) => {
         try {
-            
+            const embed = {
+                color: 1752220,
+                description: msg,
+            };
+
+            await this.mainChan.send({ embed });
         } catch (err) {
+            console.error(err);
         }
     };
+    
+    isCreated = () => {
+        return this.talkChan && this.msgChan && this.roleId;
+    }
+
+    
 }
 
 module.exports = {

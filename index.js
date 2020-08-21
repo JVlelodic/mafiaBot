@@ -65,18 +65,15 @@ client.on("message", async (msg) => {
 
                     await gameInst.moveChannel(msg.member);
                 } else {
-                    msg.guild.systemChannel.send(
-                        "Mafia game has already been created"
-                    );
+                    gameInst.sendMsg("Mafia Game has already been created");
                 }
                 break;
             case "!join":
                 if (gameInst) {
-                    const playerRole = await msg.guild.roles.fetch(roleId);
-                    await moveChannel(msg.member, msg.channel, playerRole);
+                    await gameInst.moveChannel(msg.member);
                 } else {
-                    await msg.channel.send(
-                        "Please start mafia game first by msging !mafia in a text channel"
+                    await gameInst.sendMsg(
+                        "Start Mafia Game first by msging **!mafia**"
                     );
                 }
                 break;
@@ -86,10 +83,6 @@ client.on("message", async (msg) => {
                 if (gameInst) {
                     await gameInst.endGame();
                     gameInst = null;
-                } else {
-                    msg.guild.systemChannel.send(
-                        "There is no Mafia Game to delete"
-                    );
                 }
                 break;
             default:
