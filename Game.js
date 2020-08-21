@@ -2,18 +2,16 @@ class Game {
     /**
      *
      * @param {*} guild       Guild
-     * @param {*} mainChan    TextChannel
      * @param {*} talkChan    VoiceChanel
+     * @param {*} msgChan     TextChannel
      * @param {*} roleId      Snowflake
      */
-    constructor(guild, mainChan, talkChan, msgChan, roleId) {
+
+    constructor(guild, talkChan, msgChan, roleId) {
         this.guild = guild;
-        this.mainChan = mainChan;
         this.talkChan = talkChan;
         this.msgChan = msgChan;
         this.roleId = roleId;
-
-        // this.moveChannel = this.moveChannel.bind(this);
     }
 
     /**
@@ -23,6 +21,11 @@ class Game {
 
     moveChannel = async (member) => {
         try {
+            let ret = {
+                moved: true,
+                reason: "",
+            };
+
             //Make sure that the player is in a voice channel
             if (member.voice.channel) {
                 await member.roles.add(this.roleId);
@@ -31,10 +34,14 @@ class Game {
                     channel: this.talkChan,
                 });
             } else {
-                await this.sendMsg(
-                    `${member.toString()} Enter a voice channel and msg **!join** to play Mafia Game`
-                );
+                // await this.sendMsg(
+                //     `${member.toString()} Enter a voice channel and msg **!join** to play Mafia Game`
+                // );
+                ret.moved = false;
+                ret.reason = `${member.toString()} Enter a voice channel and msg **!join** to play Mafia Game`
             }
+
+            return Promise.resolve(ret);
         } catch (err) {
             console.error(err);
         }
@@ -51,25 +58,6 @@ class Game {
             console.error(err);
         }
     };
-
-    sendMsg = async (msg) => {
-        try {
-            const embed = {
-                color: 1752220,
-                description: msg,
-            };
-
-            await this.mainChan.send({ embed });
-        } catch (err) {
-            console.error(err);
-        }
-    };
-    
-    isCreated = () => {
-        return this.talkChan && this.msgChan && this.roleId;
-    }
-
-    
 }
 
 module.exports = {

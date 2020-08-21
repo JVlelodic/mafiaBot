@@ -3,12 +3,13 @@ const client = new Discord.Client();
 const config = require("./config.json");
 const { default: axios } = require("axios");
 const { Game } = require("./Game.js");
+const { Notifier } = require("./Notifier.js");
 
 const TOKEN = config.token;
 const MAFIA_ROLE = "Mafia Players";
 
 //Globals
-
+let notifier = null;
 let gameInst = null;
 
 client.login(TOKEN);
@@ -19,6 +20,10 @@ client.on("ready", () => {
 
 client.on("message", async (msg) => {
     try {
+        if (!notifier) {
+            notifier = new Notifier(msg.guild.systemChannel);
+        }
+
         switch (msg.content) {
             case "!mafia":
                 const server = msg.guild.channels;
@@ -42,7 +47,6 @@ client.on("message", async (msg) => {
 
                     gameInst = new Game(
                         msg.guild,
-                        msg.guild.systemChannel,
                         talkChan,
                         msgChan,
                         playerRole.id
@@ -63,16 +67,28 @@ client.on("message", async (msg) => {
                         { id: playerRole, allow: perms },
                     ]);
 
-                    await gameInst.moveChannel(msg.member);
+                    notifier.sendMsg("Mafia game created!");
+
+                    const res = await gameInst.moveChannel(msg.member);
+                    if (!res.moved) {
+                        await notifier.sendMsg(res.reason);
+                    }
                 } else {
-                    gameInst.sendMsg("Mafia Game has already been created");
+                    notifier.sendMsg("Mafia Game has already been created");
                 }
                 break;
             case "!join":
                 if (gameInst) {
-                    await gameInst.moveChannel(msg.member);
+                    const res = await gameInst.moveChannel(msg.member);
+                    if (!res.moved) {
+                        await notifier.sendMsg(res.reason);
+                    } else {
+                        await notifier.sendMsg(
+                            `${msg.member.toString()} is now playing Mafia`
+                        );
+                    }
                 } else {
-                    await gameInst.sendMsg(
+                    await notifier.sendMsg(
                         "Start Mafia Game first by msging **!mafia**"
                     );
                 }
@@ -83,6 +99,8 @@ client.on("message", async (msg) => {
                 if (gameInst) {
                     await gameInst.endGame();
                     gameInst = null;
+                } else {
+                    notifier.sendMsg("No Mafia Game exists");
                 }
                 break;
             default:
