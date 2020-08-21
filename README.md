@@ -1,2 +1,2 @@
-# leetBot
-Discord bot that tracks leetcode progress and statistics
+# mafiaBot
+Discord bot that provides actions to automatically run a game of Mafia
