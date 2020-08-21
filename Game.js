@@ -2,13 +2,15 @@ class Game {
     /**
      *
      * @param {*} guild       Guild
+     * @param {*} host        Snowflake
      * @param {*} talkChan    VoiceChanel
      * @param {*} msgChan     TextChannel
      * @param {*} roleId      Snowflake
      */
 
-    constructor(guild, talkChan, msgChan, roleId) {
+    constructor(guild, hostId, talkChan, msgChan, roleId) {
         this.guild = guild;
+        this.hostId = hostId;
         this.talkChan = talkChan;
         this.msgChan = msgChan;
         this.roleId = roleId;
@@ -34,9 +36,6 @@ class Game {
                     channel: this.talkChan,
                 });
             } else {
-                // await this.sendMsg(
-                //     `${member.toString()} Enter a voice channel and msg **!join** to play Mafia Game`
-                // );
                 ret.moved = false;
                 ret.reason = `${member.toString()} Enter a voice channel and msg **!join** to play Mafia Game`
             }
@@ -58,6 +57,10 @@ class Game {
             console.error(err);
         }
     };
+
+    getHostId = () => {
+        return this.hostId;
+    }
 }
 
 module.exports = {

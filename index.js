@@ -6,7 +6,6 @@ const { Game } = require("./Game.js");
 const { Notifier } = require("./Notifier.js");
 
 const TOKEN = config.token;
-const MAFIA_ROLE = "Mafia Players";
 
 //Globals
 let notifier = null;
@@ -40,13 +39,14 @@ client.on("message", async (msg) => {
 
                     const playerRole = await msg.guild.roles.create({
                         data: {
-                            name: MAFIA_ROLE,
+                            name: "Mafia Players",
                             color: "RED",
                         },
                     });
 
                     gameInst = new Game(
                         msg.guild,
+                        msg.member.id,
                         talkChan,
                         msgChan,
                         playerRole.id
