@@ -1,11 +1,11 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const config = require("./config.json");
-const { default: axios } = require("axios");
 const { Game } = require("./Game.js");
 const { Notifier } = require("./Notifier.js");
 
 const TOKEN = config.token;
+const STATE = config.gameState;
 
 //Globals
 let notifier = null;
@@ -46,7 +46,7 @@ client.on("message", async (msg) => {
 
                     gameInst = new Game(
                         msg.guild,
-                        msg.member.id,
+                        msg.member,
                         talkChan,
                         msgChan,
                         playerRole.id
@@ -78,7 +78,15 @@ client.on("message", async (msg) => {
                 }
                 break;
             case "!join":
-                if (gameInst) {
+                if (!gameInst) {
+                    await notifier.sendMsg(
+                        "Start Mafia Game first by msging **!mafia**"
+                    );
+                } else if (gameInst.getStatus() === STATE.STARTED) {
+                    await notifier.sendMsg(
+                        "Mafia Game has already been started, join again once game has finished"
+                    );
+                } else {
                     const res = await gameInst.moveChannel(msg.member);
                     if (!res.moved) {
                         await notifier.sendMsg(res.reason);
@@ -87,13 +95,21 @@ client.on("message", async (msg) => {
                             `${msg.member.toString()} is now playing Mafia`
                         );
                     }
-                } else {
-                    await notifier.sendMsg(
-                        "Start Mafia Game first by msging **!mafia**"
-                    );
                 }
                 break;
             case "!start":
+                if (!gameInst) {
+                    notifier.sendMsg("No Mafia Game exists");
+                } else if (gameInst.getStatus() === STATE.STARTED) {
+                    notifier.sendMsg("Mafia Game has already been started");
+                } else if (gameInst.getHost().id === msg.member.id) {
+                    notifier.sendMsg("Game has been started");
+                    gameInst.test();
+                } else {
+                    notifier.sendMsg(
+                        `Only ${gameInst.getHost().toString()} can start the game`
+                    );
+                }
                 break;
             case "!delete":
                 if (gameInst) {
