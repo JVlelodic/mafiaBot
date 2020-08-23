@@ -1,3 +1,6 @@
+const config = require("./config.json");
+const MAFIADIV = config.mafiaDiv;
+
 class Settings {
     /**
      *
@@ -14,7 +17,11 @@ class Settings {
         //Collection<String, Int>
         this.userToVotes = this._mapUserVotes(allPlayers);
 
-        this.mafias = this._setMafia(allPlayers);
+        let { mafias, doctor, officer } = this._setRoles(allPlayers);
+
+        this.mafias = mafias;
+        this.docotor = doctor;
+        this.officer = officer;
     }
 
     _mapUsernames = (players) => {
@@ -37,20 +44,31 @@ class Settings {
         return voteDict;
     };
 
-    _setMafia = (playerMap) => {
+    _setRoles = (playerMap) => {
         let players = playerMap.array();
         let mafias = [];
-        let remain = Math.floor(players.length / 3);
+        let remain = Math.floor(players.length / MAFIADIV);
         let copy = Array.from(players);
 
         while (remain != 0) {
-            let rand = Math.floor(Math.random() * copy.length);
-            let selected = copy.splice(rand, rand);
+            let rand = this.randomIndex(copy.length);
+            let selected = copy.splice(rand, 1)[0];
             mafias.push(selected);
             remain -= 1;
         }
 
-        return mafias;
+        let doctor = copy.splice(this._randomIndex(copy.length), 1)[0];
+        let officer = copy.splice(this._randomIndex(copy.length), 1)[0];
+
+        return {
+            mafias,
+            doctor,
+            officer
+        };
+    };
+
+    _randomIndex = (length) => {
+        return Math.floor(Math.random().length);
     };
 }
 
