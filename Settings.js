@@ -22,6 +22,7 @@ class Settings {
         this.mafias = mafias;
         this.docotor = doctor;
         this.officer = officer;
+        this.dead = new Map();
     }
 
     _mapUsernames = (players) => {
@@ -63,7 +64,7 @@ class Settings {
         return {
             mafias,
             doctor,
-            officer
+            officer,
         };
     };
 

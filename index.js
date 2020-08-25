@@ -23,19 +23,28 @@ client.on("message", async (msg) => {
             notifier = new Notifier(msg.guild.systemChannel);
         }
 
-        switch (msg.content) {
+        const command = msg.content.split(" ");
+
+        switch (command[0]) {
             case "!mafia":
                 const server = msg.guild.channels;
 
                 //Check if a game already exists
                 if (!gameInst) {
+                    const category = await server.create("Mafia Game", {
+                        type: "category",
+                    });
+
                     const talkChan = await server.create("Townhall", {
                         type: "voice",
                     });
 
-                    const msgChan = await server.create("Mafia", {
+                    const msgChan = await server.create("Townhall", {
                         type: "text",
                     });
+
+                    await talkChan.setParent(category);
+                    await msgChan.setParent(category);
 
                     const playerRole = await msg.guild.roles.create({
                         data: {
@@ -44,28 +53,29 @@ client.on("message", async (msg) => {
                         },
                     });
 
+                    const everyRole = msg.guild.roles.everyone;
+                    const talkPerms = ["SPEAK", "CONNECT"];
+                    const msgPerms =  ["SEND_MESSAGES"];
+
+                    //Change the permissions
+                    talkChan.overwritePermissions([
+                        { id: everyRole, deny: talkPerms },
+                        { id: playerRole, allow: talkPerms },
+                    ]);
+
+                    msgChan.overwritePermissions([
+                        { id: everyRole, deny: msgPerms },
+                        { id: playerRole, allow: msgPerms },
+                    ]);
+                    
                     gameInst = new Game(
                         msg.guild,
                         msg.member,
+                        category,
                         talkChan,
                         msgChan,
                         playerRole.id
                     );
-
-                    const everyRole = msg.guild.roles.everyone;
-
-                    const perms = ["VIEW_CHANNEL", "SPEAK", "CONNECT"];
-
-                    //Change the permissions
-                    talkChan.overwritePermissions([
-                        { id: everyRole, deny: perms },
-                        { id: playerRole, allow: perms },
-                    ]);
-
-                    msgChan.overwritePermissions([
-                        { id: everyRole, deny: perms },
-                        { id: playerRole, allow: perms },
-                    ]);
 
                     notifier.sendMsg("Mafia game created!");
 
@@ -107,7 +117,9 @@ client.on("message", async (msg) => {
                     gameInst.test();
                 } else {
                     notifier.sendMsg(
-                        `Only ${gameInst.getHost().toString()} can start the game`
+                        `Only ${gameInst
+                            .getHost()
+                            .toString()} can start the game`
                     );
                 }
                 break;

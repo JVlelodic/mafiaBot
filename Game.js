@@ -7,14 +7,16 @@ class Game {
      *
      * @param {*} guild       Guild
      * @param {*} host        GuildMember
+     * @param {*} category    CategoryChannel
      * @param {*} talkChan    VoiceChanel
      * @param {*} msgChan     TextChannel
      * @param {*} roleId      Snowflake
      */
 
-    constructor(guild, host, talkChan, msgChan, roleId) {
+    constructor(guild, host, category, talkChan, msgChan, roleId) {
         this.guild = guild;
         this.host = host;
+        this.category = category;
         this.talkChan = talkChan;
         this.msgChan = msgChan;
         this.roleId = roleId;
@@ -26,10 +28,7 @@ class Game {
      * Moves player to Mafia channel and adds mafia role to player
      * @param {*} member GuildMember
      */
-    test() {
-        this.talkChan.members.each((user,key) => console.log(key));
-    }
-    
+
     moveChannel = async (member) => {
         try {
             let ret = {
@@ -60,8 +59,11 @@ class Game {
      */
     endGame = async () => {
         try {
-            await this.talkChan.delete();
-            await this.msgChan.delete();
+            this.category.children.each(async (channel) => {
+                await channel.delete();
+            });
+
+            await this.category.delete();
 
             const playerRole = await this.guild.roles.fetch(this.roleId);
             await playerRole.delete();
@@ -69,12 +71,12 @@ class Game {
             console.error(err);
         }
     };
-    
+
     startGame = () => {
         this.settings = new Settings(this.talkChan);
         this.status = STATE.STARTED;
-    }
-    
+    };
+
     /**
      * Return the member that started the game
      */
@@ -82,14 +84,13 @@ class Game {
         return this.host;
     };
 
-    
     getAllPlayers = () => {
         return this.talkChan.members;
     };
 
     getStatus = () => {
         return this.status;
-    }
+    };
 }
 
 module.exports = {
