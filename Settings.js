@@ -12,10 +12,10 @@ class Settings {
         this.allPlayers = allPlayers;
 
         //Collection<String, Snowflake>
-        this.userToSnow = this._mapUsernames(allPlayers);
+        this.userToSnow = this._mapUserSnow(allPlayers);
 
-        //Collection<String, Int>
-        this.userToVotes = this._mapUserVotes(allPlayers);
+        //Collection<Snowflake, Snowflake>
+        this.userToVote = this._mapUserVote(allPlayers);
 
         let { mafias, doctor, officer } = this._setRoles(allPlayers);
 
@@ -25,21 +25,21 @@ class Settings {
         this.dead = new Map();
     }
 
-    _mapUsernames = (players) => {
+    _mapUserSnow = (players) => {
         let userDict = new Map();
         players.each((member, snowflake) => {
-            const username = member.user.username.toLowerCase();
-            userDict[username] = snowflake;
+            const username = member.user.username.trim().toLowerCase();
+            userDict.set(username, snowflake);
         });
 
         return userDict;
     };
 
-    _mapUserVotes = (players) => {
+    _mapUserVote = (players) => {
         let voteDict = new Map();
-        players.each((member) => {
-            const username = member.user.username.toLowerCase();
-            voteDict[username] = 0;
+        players.each((member, snowflake) => {
+            // const username = member.user.username.toLowerCase();
+            voteDict.set(snowflake, "");
         });
 
         return voteDict;
@@ -70,6 +70,22 @@ class Settings {
 
     _randomIndex = (length) => {
         return Math.floor(Math.random().length);
+    };
+
+    /**
+     * Record a vote
+     * @param {*} player      Snowflake
+     * @param {*} vote        String
+     */
+
+    recordVote = (player, vote) => {
+        const snowflake = this.userToSnow.get(vote);
+
+        if (snowflake && !this.dead.has(snowflake)) {
+            this.userToVote.set(player, snowflake);
+            return true;
+        }
+        return false;
     };
 }
 

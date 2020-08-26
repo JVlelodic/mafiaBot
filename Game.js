@@ -73,9 +73,25 @@ class Game {
     };
 
     startGame = () => {
-        this.settings = new Settings(this.talkChan);
+        this.settings = new Settings(this.talkChan.members);
         this.status = STATE.STARTED;
     };
+
+    /**
+     *
+     * @param {*} player    GuildMember
+     * @param {*} snowflake String (username)
+     */
+    checkVote = (player, voteoff) => {
+        const res = this.settings.recordVote(player.id, voteoff);
+        if (res) {
+            return `${player.toString()} wants to prosecute ${voteoff}`;
+        } else {
+            return `${voteoff} is already dead and cannot be voted off`;
+        }
+    };
+
+    //GETTERS
 
     /**
      * Return the member that started the game

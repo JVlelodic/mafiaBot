@@ -114,7 +114,7 @@ client.on("message", async (msg) => {
                     notifier.sendMsg("Mafia Game has already been started");
                 } else if (gameInst.getHost().id === msg.member.id) {
                     notifier.sendMsg("Game has been started");
-                    gameInst.test();
+                    gameInst.startGame();
                 } else {
                     notifier.sendMsg(
                         `Only ${gameInst
@@ -131,6 +131,11 @@ client.on("message", async (msg) => {
                     notifier.sendMsg("No Mafia Game exists");
                 }
                 break;
+            case "!vote":
+                //Account for the additional space
+                const username = msg.content.substring(command[0].length + 1).trim().toLowerCase();
+                let result = gameInst.checkVote(msg.member, username);
+                notifier.sendMsg(result);
             default:
                 break;
         }
