@@ -1,2 +1,2 @@
 # mafiaBot
-Discord bot that provides actions to automatically run a game of Mafia
+Discord bot that provides features to automatically run a game of Mafia
