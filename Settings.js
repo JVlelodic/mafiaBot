@@ -19,10 +19,15 @@ class Settings {
 
         let { mafias, doctor, officer } = this._setRoles(allPlayers);
 
+        //Collection<Snowflake, Snowflake>
         this.mafias = mafias;
+        
+        //Guildmember
         this.docotor = doctor;
         this.officer = officer;
-        this.dead = new Map();
+
+        //Set<Snowflake>
+        this.dead = new Set();
     }
 
     _mapUserSnow = (players) => {
@@ -47,14 +52,15 @@ class Settings {
 
     _setRoles = (playerMap) => {
         let players = playerMap.array();
-        let mafias = [];
         let remain = Math.floor(players.length / MAFIADIV);
         let copy = Array.from(players);
 
+        let mafias = new Map();
+
         while (remain != 0) {
-            let rand = this.randomIndex(copy.length);
+            let rand = this._randomIndex(copy.length);
             let selected = copy.splice(rand, 1)[0];
-            mafias.push(selected);
+            mafias.set(selected.user.id, "");
             remain -= 1;
         }
 
@@ -74,6 +80,7 @@ class Settings {
 
     /**
      * Record a vote
+     *
      * @param {*} player      Snowflake
      * @param {*} vote        String
      */
@@ -87,6 +94,84 @@ class Settings {
         }
         return false;
     };
+
+    confirmVote = () => {
+        let votes = new Map();
+        this.userToVote.forEach((snowflake, voter) => {
+            const numVotes = votes.get(snowflake);
+            if (!numVotes) {
+                numVotes = 1;
+            } else {
+                numVotes += 1;
+            }
+            votes.set(snowflake, numVotes);
+            //Reset vote to no one
+            this.userToVote.set(voter, "");
+        });
+
+        let max = 0;
+        let currDead = null;
+        let dup = false;
+        votes.forEach((numVotes, user) => {
+            if (numVotes === max) {
+                dup = true;
+            } else if (numVotes > max) {
+                dup = false;
+                currDead = user;
+            }
+        });
+
+        //Check if multiple people have equal votes then noone is killed
+        //If nobody was voted, don't add it to killed
+        if (!dup && currDead !== "") {
+            this.dead.add(currDead);
+        }
+    };
+
+    /**
+     * Record user that a mafia wants to kill
+     *
+     * @param {*} player      Snowflake 
+     * @param {*} kill        String
+     */
+    recordKill = (player, kill) => {
+        const snowflake = this.userToSnow.get(kill);
+
+        if (
+            snowflake &&
+            !this.dead.has(snowflake) &&
+            !this.mafias.has(snowflake)
+        ) {
+            this.mafias.set(player, killed);
+            return true;
+        }
+        return false;
+    };
+
+    confirmKill = () => {
+        const vals = this.mafias.entries();
+        let prevKilled = null;
+        this.mafias.forEach((toKill, mafia) => {
+            if(!prevKilled){
+                prevKilled = toKill;
+            }else{
+                if(prevKilled !== toKill){
+                    return false;
+                }
+            }
+        });
+        this.dead.add(prevKilled);
+        return true;
+    };
+
+    /**
+     * 
+     * @param {*} player Snowflake
+     * @param {*} heal   String (username)
+     */
+    recordHeal = (player, heal) => {
+        
+    }
 }
 
 module.exports = {

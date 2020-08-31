@@ -55,7 +55,7 @@ client.on("message", async (msg) => {
 
                     const everyRole = msg.guild.roles.everyone;
                     const talkPerms = ["SPEAK", "CONNECT"];
-                    const msgPerms =  ["SEND_MESSAGES"];
+                    const msgPerms = ["SEND_MESSAGES"];
 
                     //Change the permissions
                     talkChan.overwritePermissions([
@@ -67,7 +67,7 @@ client.on("message", async (msg) => {
                         { id: everyRole, deny: msgPerms },
                         { id: playerRole, allow: msgPerms },
                     ]);
-                    
+
                     gameInst = new Game(
                         msg.guild,
                         msg.member,
@@ -133,9 +133,29 @@ client.on("message", async (msg) => {
                 break;
             case "!vote":
                 //Account for the additional space
-                const username = msg.content.substring(command[0].length + 1).trim().toLowerCase();
+                const username = msg.content
+                    .substring(command[0].length + 1)
+                    .trim()
+                    .toLowerCase();
                 let result = gameInst.checkVote(msg.member, username);
                 notifier.sendMsg(result);
+                break;
+            case "!kill":
+                const killed = msg.content
+                    .substring(command[0].length + 1)
+                    .trim()
+                    .toLowerCase();
+                let killMsg = gameInst.checkKill(msg.member, killed);
+                notifier.sendMsg(killMsg);
+                break;
+            case "!heal":
+                const heal = msg.content
+                .substring(command[0].length + 1)
+                .trim()
+                .toLowerCase();
+                let healMsg = gameInst.checkHeal(msg.member, heal);
+                notifier.sendMsg(healMsg);
+                break;            
             default:
                 break;
         }

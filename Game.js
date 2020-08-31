@@ -91,6 +91,30 @@ class Game {
         }
     };
 
+    /**
+     * 
+     * @param {*} player GuildMember
+     * @param {*} killed String (username)
+     */
+
+    checkKill = (player, killed) => {
+        const res = this.settings.recordKill(player.id, killed);
+        if (res) {
+            return `${player.toString()} wants to murder ${killed}`;
+        } else {
+            return `${voteoff} cannot be killed, please choose another player`;
+        }
+    };
+
+    /**
+     * 
+     * @param {*} player GuildMember
+     * @param {*} healed String (username)
+     */
+    checkHeal = (player, healed) => {
+        const res = this.settings.recordHeal(player.id, healed);
+    }
+
     //GETTERS
 
     /**
